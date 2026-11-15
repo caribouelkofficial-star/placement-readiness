@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class ApiSecurityTest {
     @Autowired MockMvc mvc;
     @MockBean Repo repo;
+    @MockBean com.placement.web.PasswordService passwords;
     @MockBean com.placement.model.MockData mock;
     @MockBean JwtDecoder decoder;
 
@@ -56,5 +57,10 @@ class ApiSecurityTest {
         UUID uid = UUID.randomUUID();
         when(repo.profileByAuthUser(any())).thenReturn(Optional.of(new Profile(UUID.randomUUID(), "A", "a@x.com", "student", null, null, true)));
         mvc.perform(get("/api/me").with(jwt().jwt(j -> j.subject(uid.toString())))).andExpect(status().isOk());
+    }
+
+    @Test void passwordChangeNeedsToken() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/auth/password")
+                .contentType("application/json").content("{}")).andExpect(status().isUnauthorized());
     }
 }

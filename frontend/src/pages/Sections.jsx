@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import ChangePassword from './ChangePassword'
 import { Gauge, Metric, Icon, Loading, ErrorNote, levelTone, tone, fmtDate } from '../ui'
 import { useComingSoon, useSection } from '../data'
 
@@ -292,6 +293,7 @@ export function Settings() {
   return (
     <>
       <Head title="Settings" />
+      <ChangePassword />
       <section className="card" style={{ maxWidth: 520, marginBottom: 16 }}><h2>Profile details</h2>
         <p className="muted" style={{ fontSize: 14 }}>Update your academics, skills and target role. Your dashboard recalculates from these answers.</p>
         <p className="rowbtn"><Link className="btn" to="/onboarding">Edit my details</Link></p>

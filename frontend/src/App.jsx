@@ -6,7 +6,7 @@ import Landing from './pages/Landing'
 import ComingSoon from './pages/ComingSoon'
 import Onboarding from './pages/Onboarding'
 import * as S from './pages/Sections'
-import { AdminOverview, AdminStudents, AdminStudentDetail, AdminRoles, AdminResources } from './pages/AdminPages'
+import { AdminOverview, AdminStudents, AdminStudentDetail, AdminRoles, AdminResources, AdminSettings } from './pages/AdminPages'
 import { StudentCtx } from './data'
 import { api } from './api'
 
@@ -15,7 +15,7 @@ const studentCtx = { fetch: (name) => api.student(name) }
 const STUDENT_NAV = [['overview', 'Overview', 'overview'], ['profile', 'My profile', 'profile'], ['skills', 'Skill assessment', 'skills'], ['aptitude', 'Aptitude test', 'aptitude'],
   ['coding', 'Coding test', 'coding'], ['readiness', 'Readiness analysis', 'readiness'], ['careers', 'Career recommendations', 'careers'], ['skill-gaps', 'Skill gap analysis', 'gaps'],
   ['roadmap', 'Learning roadmap', 'roadmap'], ['progress', 'Progress tracker', 'progress'], ['resources', 'Resources', 'resources'], ['settings', 'Settings', 'settings']]
-const ADMIN_NAV = [['/', 'Overview', 'overview', true], ['/admin/students', 'Students', 'students'], ['/admin/roles', 'Career roles', 'careers'], ['/admin/resources', 'Resources', 'resources']]
+const ADMIN_NAV = [['/', 'Overview', 'overview', true], ['/admin/students', 'Students', 'students'], ['/admin/roles', 'Career roles', 'careers'], ['/admin/resources', 'Resources', 'resources'], ['/admin/settings', 'Settings', 'settings']]
 
 function Guard({ role, children }) {
   const { session, me, loading, error } = useAuth()
@@ -115,6 +115,7 @@ export default function App() {
       <Route path="/admin/students" element={<Guard role="admin"><Shell title="Students"><AdminStudents /></Shell></Guard>} />
       <Route path="/admin/students/:id/:section?" element={<Guard role="admin"><Shell title="Student"><AdminStudentDetail /></Shell></Guard>} />
       <Route path="/admin/roles" element={<Guard role="admin"><Shell title="Career roles"><AdminRoles /></Shell></Guard>} />
+      <Route path="/admin/settings" element={<Guard role="admin"><Shell title="Settings"><AdminSettings /></Shell></Guard>} />
       <Route path="/admin/resources" element={<Guard role="admin"><Shell title="Resources"><AdminResources /></Shell></Guard>} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/coming-soon" element={<AnyRole><Shell title="Coming soon"><ComingSoon /></Shell></AnyRole>} />

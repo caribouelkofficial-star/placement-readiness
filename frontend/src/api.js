@@ -23,6 +23,7 @@ export const api = {
   me: () => request('/api/me'),
   onboarding: () => request('/api/student/onboarding'),
   saveOnboarding: (body) => request('/api/student/onboarding', { method: 'POST', body: JSON.stringify(body) }),
+  changePassword: (currentPassword, newPassword) => request('/api/auth/password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
   roles: () => request('/api/roles'),
   student: (section) => request(`/api/student/${section}`),
   adminSection: (id, section) => request(`/api/admin/students/${id}/${section}`),

@@ -124,6 +124,10 @@ public class Repo {
         return m;
     }
 
+    public void recordPasswordChange(UUID profileId) {
+        jdbc.update("insert into public.password_events (profile_id) values (?)", profileId);
+    }
+
     public Optional<Onboarding> onboarding(UUID profileId) {
         return jdbc.query("select data::text from public.student_onboarding where profile_id = ?", (rs, i) -> {
             try {

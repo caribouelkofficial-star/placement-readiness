@@ -19,10 +19,21 @@ public class ApiController {
             "coding", "readiness", "careers", "skill-gaps", "roadmap", "progress");
     private final Repo repo;
     private final MockData mock;
+    private final PasswordService passwords;
 
-    public ApiController(Repo repo, MockData mock) {
+    public ApiController(Repo repo, MockData mock, PasswordService passwords) {
         this.repo = repo;
         this.mock = mock;
+        this.passwords = passwords;
+    }
+
+    @PostMapping("/auth/password")
+    public ResponseEntity<Void> changePassword(@RequestBody PasswordChange body, Authentication auth) {
+        var me = current(auth);
+        var jwt = ((org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken) auth).getToken();
+        passwords.change(me.email(), jwt.getTokenValue(), body.currentPassword(), body.newPassword());
+        repo.recordPasswordChange(me.id());
+        return ResponseEntity.noContent().build();
     }
 
     private Object section(String name, UUID profileId) {

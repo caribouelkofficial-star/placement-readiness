@@ -36,6 +36,7 @@ All routes need `Authorization: Bearer <supabase access token>` except the healt
 | GET | /actuator/health | public |
 | POST | /api/auth/session | any user (records a login event) |
 | GET | /api/me | any user (profile, role, `onboarded`) |
+| POST | /api/auth/password | any user. Body `{currentPassword, newPassword}`. Re-verifies the current password, enforces the policy (8+ chars, upper, lower, digit), updates it through Supabase Auth with the user's own token, and logs a `password_events` row |
 | GET | /api/roles, /api/resources | any user |
 | GET / POST | /api/student/onboarding | student (read / save onboarding answers) |
 | GET | /api/student/{overview,profile,skills,aptitude,coding,readiness,careers,skill-gaps,roadmap,progress} | student (409 until onboarded) |
@@ -43,13 +44,13 @@ All routes need `Authorization: Bearer <supabase access token>` except the healt
 | GET | /api/admin/students/{id}/{section} | admin (same sections as above) |
 
 ## Database (Supabase Postgres)
-Tables: `profiles`, `student_academics`, `readiness_scores`, `login_events`, `student_onboarding`, `career_roles`, `resources`.
+Tables: `profiles`, `student_academics`, `readiness_scores`, `login_events`, `password_events`, `student_onboarding`, `career_roles`, `resources`.
 Row-level security is on with no policies, so the public Data API exposes nothing. The backend connects as a least-privilege role,
 `app_backend` (see `20261115000002_backend_role.sql`; set its password out-of-band, never in git). Apply the files in
 `supabase/migrations/` in order.
 
 ## Config
-Backend (Render): `SUPABASE_URL`, `DB_URL`, `DB_USER`, `DB_PASSWORD`, `ALLOWED_ORIGIN` (comma-separated frontend origins).
+Backend (Render): `SUPABASE_URL`, `SUPABASE_ANON_KEY` (publishable key, used for password re-verification), `DB_URL`, `DB_USER`, `DB_PASSWORD`, `ALLOWED_ORIGIN` (comma-separated frontend origins).
 Use Supabase's session pooler for `DB_URL`. Render's free tier sleeps after about 15 minutes idle, so the first request can take 30–60 seconds.
 Frontend (Vercel): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (publishable key only), `VITE_API_URL` (the Render URL).
 In Supabase Auth settings, add the Vercel URL as the Site URL and turn "Confirm email" off if you don't want email confirmation.

@@ -4,6 +4,7 @@ import { api } from '../api'
 import { StudentCtx } from '../data'
 import { levelTone, Icon, Loading, ErrorNote } from '../ui'
 import * as S from './Sections'
+import ChangePassword from './ChangePassword'
 
 const fmt = (t) => (t ? new Date(t).toLocaleString() : 'Never')
 const Head = ({ title, sub }) => <div className="welcome"><p className="eyebrow">Placement cell</p><h1>{title}</h1>{sub && <p className="sub">{sub}</p>}</div>
@@ -100,6 +101,10 @@ export function AdminRoles() {
         </section>))}</div>
     </>
   )
+}
+
+export function AdminSettings() {
+  return <><Head title="Settings" sub="Manage your account." /><ChangePassword /></>
 }
 
 export function AdminResources() {
