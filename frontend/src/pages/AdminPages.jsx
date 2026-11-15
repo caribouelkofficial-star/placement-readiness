@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { StudentCtx } from '../data'
-import { levelTone } from '../ui'
+import { levelTone, Icon, Loading, ErrorNote } from '../ui'
 import * as S from './Sections'
 
 const fmt = (t) => (t ? new Date(t).toLocaleString() : 'Never')
-const Head = ({ title, sub }) => <div className="welcome"><p className="muted">Placement cell</p><h1>{title}</h1>{sub && <p className="muted">{sub}</p>}</div>
+const Head = ({ title, sub }) => <div className="welcome"><p className="eyebrow">Placement cell</p><h1>{title}</h1>{sub && <p className="sub">{sub}</p>}</div>
 
 function useLoad(fn) {
   const [d, setD] = useState({ data: null, err: null })
@@ -16,8 +16,8 @@ function useLoad(fn) {
 
 export function AdminOverview() {
   const { data: d, err } = useLoad(api.adminOverview)
-  if (err) return <p className="error">{err}</p>
-  if (!d) return <p className="muted">Loading…</p>
+  if (err) return <ErrorNote>{err}</ErrorNote>
+  if (!d) return <Loading />
   const max = Math.max(1, ...d.levels.map((l) => l.count))
   const order = ['Placement Ready', 'Ready', 'Developing', 'Beginner']
   return (
@@ -47,8 +47,8 @@ export function AdminOverview() {
 export function AdminStudents() {
   const { data: rows, err } = useLoad(api.adminStudents)
   const navigate = useNavigate()
-  if (err) return <p className="error">{err}</p>
-  if (!rows) return <p className="muted">Loading…</p>
+  if (err) return <ErrorNote>{err}</ErrorNote>
+  if (!rows) return <Loading />
   return (
     <>
       <Head title="Students" sub={`${rows.length} students`} />
@@ -60,7 +60,7 @@ export function AdminStudents() {
             <td><b>{r.fullName}</b><div className="muted" style={{ fontSize: 12 }}>{r.email}</div></td>
             <td>{r.branch || '—'}</td><td>{fmt(r.lastLoginAt)}</td><td>{r.loginCount}</td>
             <td>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></td>
-            <td><Link className="linkbtn" to={`/admin/students/${r.id}/overview`}>View →</Link></td>
+            <td><Link className="linkbtn" to={`/admin/students/${r.id}/overview`}>View</Link></td>
           </tr>))}</tbody></table></div>
     </>
   )
@@ -79,7 +79,7 @@ export function AdminStudentDetail() {
   const Page = tab[2]
   return (
     <>
-      <p style={{ marginBottom: 12 }}><Link className="linkbtn" to="/admin/students">← All students</Link> <span className="muted">· Viewing as placement officer</span></p>
+      <p style={{ marginBottom: 12 }}><Link className="linkbtn" to="/admin/students"><Icon name="back" size={14} /> All students</Link> <span className="muted">· Viewing as placement officer</span></p>
       <div className="tabs">{TABS.map(([k, label]) => <NavLink key={k} to={`/admin/students/${id}/${k}`}>{label}</NavLink>)}</div>
       {ctx && <StudentCtx.Provider value={ctx}><Page key={`${id}-${section}`} /></StudentCtx.Provider>}
     </>
@@ -88,8 +88,8 @@ export function AdminStudentDetail() {
 
 export function AdminRoles() {
   const { data, err } = useLoad(api.adminRoles)
-  if (err) return <p className="error">{err}</p>
-  if (!data) return <p className="muted">Loading…</p>
+  if (err) return <ErrorNote>{err}</ErrorNote>
+  if (!data) return <Loading />
   return (
     <>
       <Head title="Career roles" sub="Role definitions and the skill levels each one requires." />

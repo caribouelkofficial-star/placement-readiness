@@ -1,52 +1,72 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Gauge, Metric, levelTone, tone } from '../ui'
-import { DEMO_MSG, useSection, useToast } from '../data'
+import { Gauge, Metric, Icon, Loading, ErrorNote, levelTone, tone, fmtDate } from '../ui'
+import { useComingSoon, useSection } from '../data'
 
 function Load({ s, children }) {
-  if (s.err) return <p className="error">{s.err}</p>
-  if (!s.data) return <p className="muted">Loading…</p>
+  if (s.err) return <ErrorNote>Could not load this page.</ErrorNote>
+  if (!s.data) return <Loading />
   return children(s.data)
 }
-const Head = ({ title, sub }) => <div style={{ marginBottom: 18 }}><h1 className="ph">{title}</h1>{sub && <p className="muted">{sub}</p>}</div>
+const Head = ({ title, sub }) => <div className="pagehead"><h1 className="ph">{title}</h1>{sub && <p className="muted">{sub}</p>}</div>
+const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening' }
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`
 const Chips = ({ items }) => <>{items.map((s) => <span className="chip" key={s}>{s}</span>)}</>
 const diffClass = { Easy: 's-good', Medium: 's-warn', Hard: 's-bad' }
 
 export function Overview() {
   const s = useSection('overview')
-  return <Load s={s}>{(d) => (
+  return <Load s={s}>{(d) => {
+    const p = d.profile, first = (p.fullName || '').trim().split(/\s+/)[0]
+    const initials = (p.fullName || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+    return (
     <>
       <div className="welcome">
-        <p className="muted">✦ {d.profile.branch ? `${d.profile.branch} student` : 'Student'}</p>
-        <h1>{d.profile.fullName}</h1>
-        {d.profile.phone && <p className="muted">📞 {d.profile.phone} · {d.profile.email}</p>}
-        <p className="muted">Readiness <b>{d.readiness.score}%</b> · <b>{d.readiness.level}</b> · assessment coverage {d.assessmentCoverage}%</p>
+        <div className="hello">
+          <span className="av" aria-hidden="true">{initials}</span>
+          <div style={{ minWidth: 0 }}>
+            <p className="eyebrow"><Icon name="spark" size={14} />{p.branch ? `${p.branch} student` : 'Student'}</p>
+            <h1>{greeting()}, {first}</h1>
+          </div>
+        </div>
+        <p className="sub" style={{ marginTop: 10 }}>Your readiness is <b>{d.readiness.score}%</b> ({d.readiness.level}) with {d.assessmentCoverage}% of assessments completed.</p>
+        <div className="pills">
+          {p.phone && <a className="pill" href={`tel:${p.phone.replace(/[^+\d]/g, '')}`}><Icon name="phone" size={14} /><span>{p.phone}</span></a>}
+          {p.email && <span className="pill"><Icon name="mail" size={14} /><span>{p.email}</span></span>}
+        </div>
       </div>
+
+      <div className="kpis">
+        <div className="card kpi"><span className="ki"><Icon name="test" size={20} /></span><div><b>{d.stats.testsTaken}</b><span>Tests taken</span></div></div>
+        <div className="card kpi"><span className="ki"><Icon name="coding" size={20} /></span><div><b>{d.stats.problemsSolved}</b><span>Problems solved</span></div></div>
+        <div className="card kpi"><span className="ki"><Icon name="flame" size={20} /></span><div><b>{plural(d.stats.streakDays, 'day')}</b><span>Practice streak</span></div></div>
+      </div>
+
       <div className="grid3">
-        <section className="card" style={{ display: 'grid', justifyItems: 'center', alignContent: 'start' }}>
-          <h2 style={{ justifySelf: 'start' }}>Placement readiness</h2>
+        <section className="card center-col" aria-labelledby="h-ready">
+          <div className="card-head"><h2 id="h-ready">Placement readiness</h2></div>
           <Gauge value={d.readiness.score} label="Readiness" />
           <span className={`status ${levelTone(d.readiness.level)}`}>{d.readiness.level}</span>
         </section>
-        <section className="card"><h2>Core competencies</h2>
+        <section className="card" aria-labelledby="h-comp"><div className="card-head"><h2 id="h-comp">Core competencies</h2></div>
           {d.competencies.map((c) => <Metric key={c.label} label={c.label} value={c.value} note={`Weight ${c.weight}%`} />)}
         </section>
-        <section className="card"><h2>Top career matches</h2>
-          {d.topCareers.map((c, i) => (
-            <div className="career" key={c.slug}><i>{i + 1}</i><span style={{ flex: 1 }}>{c.title}</span><b>{c.match}%</b></div>
+        <section className="card" aria-labelledby="h-car"><div className="card-head"><h2 id="h-car">Top career matches</h2></div>
+          {d.topCareers.length === 0 ? <p className="empty">No matches yet.</p> : d.topCareers.map((c, i) => (
+            <div className="career" key={c.slug}><i>{i + 1}</i>
+              <span>{c.title}<span className="mini" aria-hidden="true"><u style={{ width: `${c.match}%` }} /></span></span>
+              <b>{c.match}%</b></div>
           ))}
         </section>
       </div>
-      <div className="grid3" style={{ marginTop: 20 }}>
-        <section className="card stat"><b>{d.stats.testsTaken}</b><span>Tests taken</span></section>
-        <section className="card stat"><b>{d.stats.problemsSolved}</b><span>Problems solved</span></section>
-        <section className="card stat"><b>{d.stats.streakDays} days</b><span>Practice streak</span></section>
-      </div>
-      <section className="card" style={{ marginTop: 20 }}><h2>Recent activity</h2>
-        <ul className="plain">{d.recentActivity.map((a, i) => <li key={i}><span>{a.text}</span><span className="muted">{a.date}</span></li>)}</ul>
+
+      <section className="card mt" aria-labelledby="h-act"><div className="card-head"><h2 id="h-act">Recent activity</h2></div>
+        {d.recentActivity.length === 0 ? <p className="empty">No activity yet. Take a test to get started.</p> :
+          <ul className="plain timeline">{d.recentActivity.map((a, i) => <li key={i}><span>{a.text}</span><span className="muted">{fmtDate(a.date)}</span></li>)}</ul>}
       </section>
     </>
-  )}</Load>
+    )
+  }}</Load>
 }
 
 export function Profile() {
@@ -76,7 +96,7 @@ export function Profile() {
 
 export function Skills() {
   const s = useSection('skills')
-  const toast = useToast()
+  const soon = useComingSoon()
   return <Load s={s}>{(d) => {
     const cats = [...new Set(d.map((x) => x.category))]
     return (
@@ -89,7 +109,7 @@ export function Skills() {
             </section>
           ))}
         </div>
-        <p style={{ marginTop: 18 }}><button className="btn primary" onClick={() => toast(DEMO_MSG)}>Retake skill assessment</button></p>
+        <p className="rowbtn"><button className="btn primary" onClick={() => soon('Skill assessment')}>Retake skill assessment</button></p>
       </>
     )
   }}</Load>
@@ -97,7 +117,7 @@ export function Skills() {
 
 export function Aptitude() {
   const s = useSection('aptitude')
-  const toast = useToast()
+  const soon = useComingSoon()
   return <Load s={s}>{(d) => (
     <>
       <Head title="Aptitude test" sub={`Overall aptitude score: ${d.overall}/100`} />
@@ -106,10 +126,10 @@ export function Aptitude() {
           <section className="card" key={x.name}><h2>{x.name}</h2><Metric label={`${x.correct}/${x.questions} correct`} value={x.score} /></section>
         ))}
       </div>
-      <section className="card" style={{ marginTop: 20 }}><h2>Attempt history</h2>
+      <section className="card mt"><h2>Attempt history</h2>
         <div className="tablewrap"><table><thead><tr><th>Date</th><th>Score</th><th>Duration</th></tr></thead>
-          <tbody>{d.attempts.map((a) => <tr key={a.date}><td>{a.date}</td><td>{a.score}%</td><td>{a.durationMin} min</td></tr>)}</tbody></table></div>
-        <p style={{ marginTop: 14 }}><button className="btn primary" onClick={() => toast(DEMO_MSG)}>Start a new test</button></p>
+          <tbody>{d.attempts.map((a) => <tr key={a.date}><td>{fmtDate(a.date)}</td><td>{a.score}%</td><td>{a.durationMin} min</td></tr>)}</tbody></table></div>
+        <p className="rowbtn"><button className="btn primary" onClick={() => soon('Aptitude tests')}>Start a new test</button></p>
       </section>
     </>
   )}</Load>
@@ -117,7 +137,7 @@ export function Aptitude() {
 
 export function Coding() {
   const s = useSection('coding')
-  const toast = useToast()
+  const soon = useComingSoon()
   return <Load s={s}>{(d) => (
     <>
       <Head title="Coding test" sub={`${d.solved}/${d.total} problems solved · ${d.streakDays}-day streak · ${d.languages.join(', ')}`} />
@@ -126,7 +146,7 @@ export function Coding() {
         <tbody>{d.problems.map((p) => (
           <tr key={p.id}><td>{p.id}</td><td><b>{p.title}</b></td><td>{p.topic}</td>
             <td><span className={`status ${diffClass[p.difficulty]}`} style={{ marginTop: 0 }}>{p.difficulty}</span></td>
-            <td>{p.status}</td><td><button className="linkbtn" onClick={() => toast(DEMO_MSG)}>{p.status === 'Solved' ? 'Review' : 'Open'}</button></td></tr>
+            <td>{p.status}</td><td><button className="linkbtn" onClick={() => soon('Coding editor')}>{p.status === 'Solved' ? 'Review' : 'Open'}</button></td></tr>
         ))}</tbody></table></div>
     </>
   )}</Load>
@@ -138,10 +158,10 @@ export function Readiness() {
     <>
       <Head title="Readiness analysis" sub="How your score is calculated from your four category scores." />
       <div className="grid3">
-        <section className="card" style={{ display: 'grid', justifyItems: 'center' }}>
+        <section className="card center-col">
           <Gauge value={d.score} label="Readiness" /><span className={`status ${levelTone(d.level)}`}>{d.level}</span>
         </section>
-        <section className="card" style={{ gridColumn: 'span 2' }}><h2>Score breakdown</h2>
+        <section className="card span2"><h2>Score breakdown</h2>
           <div className="tablewrap"><table><thead><tr><th>Category</th><th>Score</th><th>Weight</th><th>Adds</th></tr></thead>
             <tbody>{d.formula.map((f) => <tr key={f.label}><td>{f.label}</td><td>{f.value}</td><td>{f.weight}%</td><td>{f.contribution}</td></tr>)}</tbody></table></div>
           <p className="callout">{d.insight}</p>
@@ -177,11 +197,11 @@ export function SkillGaps() {
     <>
       <Head title="Skill gap analysis" sub={`Target role: ${d.targetRole} (${d.match}% match)`} />
       <div className="grid3">
-        <section className="card" style={{ gridColumn: 'span 2' }}><h2>Current vs required</h2>
+        <section className="card span2"><h2>Current vs required</h2>
           {d.gaps.map((g) => (
             <div className="metric" key={g.skill}>
               <div className="row"><span>{g.skill}</span><span>{g.current}<em> / {g.required} required</em></span></div>
-              <div className="track" style={{ position: 'relative' }}>
+              <div className="track gap-track">
                 <div className="fill" style={{ width: `${g.current}%`, background: `rgb(var(--${g.gap > 0 ? 'warn' : 'good'}))` }} />
                 <div className="marker" style={{ left: `${g.required}%` }} />
               </div>
@@ -222,15 +242,15 @@ export function Roadmap() {
 export function Progress() {
   const s = useSection('progress')
   return <Load s={s}>{(d) => {
-    const W = 560, H = 200, pad = 28, pts = d.weekly.map((w, i) => [pad + (i * (W - 2 * pad)) / (d.weekly.length - 1), H - pad - (w.score / 100) * (H - 2 * pad)])
+    const W = 480, H = 220, pad = 30, pts = d.weekly.map((w, i) => [pad + (i * (W - 2 * pad)) / (d.weekly.length - 1), H - pad - (w.score / 100) * (H - 2 * pad)])
     return (
       <>
         <Head title="Progress tracker" sub={`${d.change >= 0 ? '+' : ''}${d.change} points over the last 8 weeks`} />
         <div className="grid3">
-          <section className="card" style={{ gridColumn: 'span 2' }}><h2>Weekly readiness score</h2>
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Weekly readiness score">
+          <section className="card span2"><h2>Weekly readiness score</h2>
+            <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ maxWidth: 600 }} role="img" aria-label="Weekly readiness score">
               <polyline fill="none" stroke="rgb(var(--brand))" strokeWidth="3" points={pts.map((p) => p.join(',')).join(' ')} />
-              {pts.map((p, i) => <g key={i}><circle cx={p[0]} cy={p[1]} r="4" fill="rgb(var(--brand))" /><text x={p[0]} y={p[1] - 10} textAnchor="middle" fontSize="11" fill="rgb(var(--muted))">{d.weekly[i].score}</text><text x={p[0]} y={H - 6} textAnchor="middle" fontSize="10" fill="rgb(var(--muted))">W{i + 1}</text></g>)}
+              {pts.map((p, i) => <g key={i}><circle cx={p[0]} cy={p[1]} r="4" fill="rgb(var(--brand))" /><text x={p[0]} y={p[1] - 10} textAnchor="middle" fontSize="12" fill="rgb(var(--muted))">{d.weekly[i].score}</text><text x={p[0]} y={H - 6} textAnchor="middle" fontSize="11" fill="rgb(var(--muted))">W{i + 1}</text></g>)}
             </svg>
           </section>
           <section className="card"><h2>Milestones</h2>
@@ -245,19 +265,19 @@ export function Progress() {
 export function Resources() {
   const [rows, setRows] = useState(null)
   useEffect(() => { api.resources().then(setRows).catch(() => setRows([])) }, [])
-  const toast = useToast()
-  if (!rows) return <p className="muted">Loading…</p>
+  const soon = useComingSoon()
+  if (!rows) return <Loading />
   return (
     <>
       <Head title="Resources" sub="Learning material mapped to skills." />
       <div className="tablewrap"><table><thead><tr><th>Title</th><th>Type</th><th>Skill</th><th>Duration</th><th /></tr></thead>
-        <tbody>{rows.map((r) => <tr key={r.id}><td><b>{r.title}</b></td><td>{r.type}</td><td>{r.skill}</td><td>{r.duration}</td><td><button className="linkbtn" onClick={() => toast(DEMO_MSG)}>Open</button></td></tr>)}</tbody></table></div>
+        <tbody>{rows.map((r) => <tr key={r.id}><td><b>{r.title}</b></td><td>{r.type}</td><td>{r.skill}</td><td>{r.duration}</td><td><button className="linkbtn" onClick={() => soon(r.title)}>Open</button></td></tr>)}</tbody></table></div>
     </>
   )
 }
 
 export function Settings() {
-  const toast = useToast()
+  const soon = useComingSoon()
   const [prefs, setPrefs] = useState({ email: true, weekly: true, share: false })
   return (
     <>
@@ -266,7 +286,7 @@ export function Settings() {
         {[['email', 'Email me about new assessments'], ['weekly', 'Weekly progress summary'], ['share', 'Share my profile with the placement cell']].map(([k, label]) => (
           <label className="task" key={k}><input type="checkbox" checked={prefs[k]} onChange={() => setPrefs({ ...prefs, [k]: !prefs[k] })} />{label}</label>
         ))}
-        <p style={{ marginTop: 14 }}><button className="btn primary" onClick={() => toast('Preferences saved (demo).')}>Save</button></p>
+        <p className="rowbtn"><button className="btn primary" onClick={() => soon('Saving preferences')}>Save</button></p>
       </section>
     </>
   )

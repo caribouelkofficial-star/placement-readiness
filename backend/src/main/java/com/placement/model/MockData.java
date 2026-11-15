@@ -59,7 +59,9 @@ public class MockData {
             double sum = 0; var have = new ArrayList<String>(); var miss = new ArrayList<String>();
             for (var e : role.required().entrySet()) {
                 int lv = levels.getOrDefault(e.getKey(), 0);
-                sum += Math.min(1.0, lv / (e.getValue() * 1.2));
+                double need = e.getValue(), ratio = lv / need;
+                // Fully meeting a requirement earns 90%; the last 10% rewards headroom. Shortfalls are penalised quadratically.
+                sum += ratio >= 1 ? 0.9 + 0.1 * Math.min(1.0, (lv - need) / Math.max(1.0, 100 - need)) : 0.9 * ratio * ratio;
                 (lv >= e.getValue() ? have : miss).add(e.getKey());
             }
             var m = new LinkedHashMap<String, Object>();

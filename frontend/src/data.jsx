@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 /** Where a student's section data comes from: their own endpoints, or an admin viewing a student. */
@@ -31,4 +32,7 @@ export function ToastProvider({ children }) {
   )
 }
 
-export const DEMO_MSG = 'Demo mode: this action is simulated.'
+export function useComingSoon() {
+  const navigate = useNavigate()
+  return useCallback((feature) => navigate('/coming-soon', { state: { feature } }), [navigate])
+}
