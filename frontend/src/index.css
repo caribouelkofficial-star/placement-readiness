@@ -355,3 +355,40 @@ tbody tr:hover td{background:rgb(var(--surface-2)/.5)}
 .onb-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
 .empty-card{max-width:520px;text-align:center;margin:24px auto}
 @media(max-width:640px){.fgrid{grid-template-columns:1fr}.onb-card{padding:20px}.steps li span{display:none}.steps li.on span{display:inline}}
+
+/* ---------- mobile: tables become stacked cards ---------- */
+@media(max-width:599px){
+  .tablewrap{border:0;background:none;border-radius:0;overflow:visible}
+  .card .tablewrap{margin:0}
+  table.rt{min-width:0;display:block}
+  table.rt thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  table.rt tbody{display:grid;gap:12px}
+  table.rt tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:16px;border:1px solid rgb(var(--line));border-radius:14px;background:rgb(var(--surface));box-shadow:var(--sh)}
+  .card table.rt tr{box-shadow:none;background:rgb(var(--surface-2)/.5)}
+  table.rt td{display:block;padding:0;border:0;min-width:0;overflow-wrap:anywhere;font-size:14px;font-weight:600}
+  table.rt td[data-label]:before{content:attr(data-label);display:block;margin-bottom:2px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:rgb(var(--muted))}
+  table.rt td.pri,table.rt td.act{grid-column:1/-1}
+  table.rt td.pri{font-size:15px;padding-bottom:10px;border-bottom:1px solid rgb(var(--line))}
+  table.rt td.act{padding-top:2px}
+  table.rt td.act .linkbtn{display:inline-flex;align-items:center;min-height:40px}
+  table.rt td.idx{display:none}
+  table.rt tbody tr:hover td{background:none}
+  tr.rowlink{cursor:pointer}
+  /* tighter, calmer rhythm */
+  .content{padding:14px 14px 28px}
+  .card{padding:16px;border-radius:14px}
+  .welcome{padding:18px;margin-bottom:14px}
+  .grid3{gap:14px}
+  .pagehead{margin-bottom:14px}
+  .stats{gap:10px}
+  .card h2{font-size:15px;margin-bottom:12px}
+  .plain li{align-items:flex-start}
+  .kv{grid-template-columns:84px minmax(0,1fr)}
+  .tabs a{padding:8px 13px}
+  .topbar .t span{font-size:16px}
+}
+@media(max-width:380px){
+  .kpis{gap:8px}.kpi{padding:12px 10px}.kpi b{font-size:19px}.kpi span{font-size:11px}
+  .hstats{gap:16px}.hstat b{font-size:20px}
+}
+tr.rowlink{cursor:pointer}tr.rowlink:focus-visible{outline-offset:-2px}

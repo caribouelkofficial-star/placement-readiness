@@ -1,4 +1,6 @@
 server:
+  error:
+    include-message: always
   port: ${PORT:8080}
 spring:
   datasource:

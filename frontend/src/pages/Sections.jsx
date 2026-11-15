@@ -139,8 +139,8 @@ export function Aptitude() {
         ))}
       </div>
       <section className="card mt"><h2>Attempt history</h2>
-        <div className="tablewrap"><table><thead><tr><th>Date</th><th>Score</th><th>Duration</th></tr></thead>
-          <tbody>{d.attempts.map((a) => <tr key={a.date}><td>{fmtDate(a.date)}</td><td>{a.score}%</td><td>{a.durationMin} min</td></tr>)}</tbody></table></div>
+        <div className="tablewrap"><table className="rt"><thead><tr><th>Date</th><th>Score</th><th>Duration</th></tr></thead>
+          <tbody>{d.attempts.map((a) => <tr key={a.date}><td className="pri">{fmtDate(a.date)}</td><td data-label="Score">{a.score}%</td><td data-label="Duration">{a.durationMin} min</td></tr>)}</tbody></table></div>
         <p className="rowbtn"><button className="btn primary" onClick={() => soon('Aptitude tests')}>Start a new test</button></p>
       </section>
     </>
@@ -152,12 +152,12 @@ export function Coding() {
   return <Load s={s}>{(d) => (
     <>
       <Head title="Coding test" sub={`${d.solved}/${d.total} problems solved · ${d.streakDays}-day streak · ${d.languages.join(', ')}`} />
-      <div className="tablewrap"><table>
+      <div className="tablewrap"><table className="rt">
         <thead><tr><th>#</th><th>Problem</th><th>Topic</th><th>Difficulty</th><th>Status</th><th /></tr></thead>
         <tbody>{d.problems.map((p) => (
-          <tr key={p.id}><td>{p.id}</td><td><b>{p.title}</b></td><td>{p.topic}</td>
-            <td><span className={`status ${diffClass[p.difficulty]}`} style={{ marginTop: 0 }}>{p.difficulty}</span></td>
-            <td>{p.status}</td><td><a className="linkbtn" href={p.url} target="_blank" rel="noopener noreferrer">{p.status === 'Solved' ? 'Review' : 'Solve'} ↗</a></td></tr>
+          <tr key={p.id}><td className="idx">{p.id}</td><td className="pri"><b>{p.title}</b></td><td data-label="Topic">{p.topic}</td>
+            <td data-label="Difficulty"><span className={`status ${diffClass[p.difficulty]}`} style={{ marginTop: 0 }}>{p.difficulty}</span></td>
+            <td data-label="Status">{p.status}</td><td className="act"><a className="linkbtn" href={p.url} target="_blank" rel="noopener noreferrer">{p.status === 'Solved' ? 'Review' : 'Solve'} ↗</a></td></tr>
         ))}</tbody></table></div>
     </>
   )}</Load>
@@ -173,8 +173,8 @@ export function Readiness() {
           <Gauge value={d.score} label="Readiness" /><span className={`status ${levelTone(d.level)}`}>{d.level}</span>
         </section>
         <section className="card span2"><h2>Score breakdown</h2>
-          <div className="tablewrap"><table><thead><tr><th>Category</th><th>Score</th><th>Weight</th><th>Adds</th></tr></thead>
-            <tbody>{d.formula.map((f) => <tr key={f.label}><td>{f.label}</td><td>{f.value}</td><td>{f.weight}%</td><td>{f.contribution}</td></tr>)}</tbody></table></div>
+          <div className="tablewrap"><table className="rt"><thead><tr><th>Category</th><th>Score</th><th>Weight</th><th>Adds</th></tr></thead>
+            <tbody>{d.formula.map((f) => <tr key={f.label}><td className="pri">{f.label}</td><td data-label="Score">{f.value}</td><td data-label="Weight">{f.weight}%</td><td data-label="Adds">{f.contribution}</td></tr>)}</tbody></table></div>
           <p className="callout">{d.insight}</p>
         </section>
       </div>
@@ -280,8 +280,8 @@ export function Resources() {
   return (
     <>
       <Head title="Resources" sub="Learning material mapped to skills." />
-      <div className="tablewrap"><table><thead><tr><th>Title</th><th>Type</th><th>Skill</th><th>Duration</th><th /></tr></thead>
-        <tbody>{rows.map((r) => <tr key={r.id}><td><b>{r.title}</b></td><td>{r.type}</td><td>{r.skill}</td><td>{r.duration}</td><td><a className="linkbtn" href={r.url} target="_blank" rel="noopener noreferrer">Open ↗</a></td></tr>)}</tbody></table></div>
+      <div className="tablewrap"><table className="rt"><thead><tr><th>Title</th><th>Type</th><th>Skill</th><th>Duration</th><th /></tr></thead>
+        <tbody>{rows.map((r) => <tr key={r.id}><td className="pri"><b>{r.title}</b></td><td data-label="Type">{r.type}</td><td data-label="Skill">{r.skill}</td><td data-label="Duration">{r.duration}</td><td className="act"><a className="linkbtn" href={r.url} target="_blank" rel="noopener noreferrer">Open ↗</a></td></tr>)}</tbody></table></div>
     </>
   )
 }

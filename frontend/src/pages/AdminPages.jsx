@@ -52,15 +52,15 @@ export function AdminStudents() {
   return (
     <>
       <Head title="Students" sub={`${rows.length} students`} />
-      <div className="tablewrap"><table>
+      <div className="tablewrap"><table className="rt">
         <thead><tr><th>Student</th><th>Branch</th><th>Last login</th><th>Logins</th><th>Readiness</th><th /></tr></thead>
         <tbody>{rows.map((r) => (
           <tr key={r.id} className="rowlink" tabIndex={0} onClick={() => navigate(`/admin/students/${r.id}/overview`)}
             onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/students/${r.id}/overview`)}>
-            <td><b>{r.fullName}</b><div className="muted" style={{ fontSize: 12 }}>{r.email}</div></td>
-            <td>{r.branch || '—'}</td><td>{fmt(r.lastLoginAt)}</td><td>{r.loginCount}</td>
-            <td>{r.onboarded ? <>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></> : <span className="status s-brand" style={{ marginTop: 0 }}>Onboarding pending</span>}</td>
-            <td><Link className="linkbtn" to={`/admin/students/${r.id}/overview`}>View</Link></td>
+            <td className="pri"><b>{r.fullName}</b><div className="muted" style={{ fontSize: 12 }}>{r.email}</div></td>
+            <td data-label="Branch">{r.branch || '—'}</td><td data-label="Last login">{fmt(r.lastLoginAt)}</td><td data-label="Logins">{r.loginCount}</td>
+            <td data-label="Readiness">{r.onboarded ? <>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></> : <span className="status s-brand" style={{ marginTop: 0 }}>Onboarding pending</span>}</td>
+            <td className="act"><Link className="linkbtn" to={`/admin/students/${r.id}/overview`}>View details</Link></td>
           </tr>))}</tbody></table></div>
     </>
   )
