@@ -1,0 +1,21 @@
+server:
+  port: ${PORT:8080}
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SUPABASE_URL:http://localhost:54321}/auth/v1/.well-known/jwks.json
+          issuer-uri: ${SUPABASE_URL:http://localhost:54321}/auth/v1
+          jws-algorithms: ES256,RS256
+app:
+  allowed-origin: ${ALLOWED_ORIGIN:http://localhost:5173}
+management:
+  endpoints.web.exposure.include: health
