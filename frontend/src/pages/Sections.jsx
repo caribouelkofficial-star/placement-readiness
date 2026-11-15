@@ -3,9 +3,9 @@ import { api } from '../api'
 import { Gauge, Metric, Icon, Loading, ErrorNote, levelTone, tone, fmtDate } from '../ui'
 import { useComingSoon, useSection } from '../data'
 
-function Load({ s, children }) {
+function Load({ s, v, children }) {
   if (s.err) return <ErrorNote>Could not load this page.</ErrorNote>
-  if (!s.data) return <Loading />
+  if (!s.data) return <Loading variant={v} />
   return children(s.data)
 }
 const Head = ({ title, sub }) => <div className="pagehead"><h1 className="ph">{title}</h1>{sub && <p className="muted">{sub}</p>}</div>
@@ -16,7 +16,7 @@ const diffClass = { Easy: 's-good', Medium: 's-warn', Hard: 's-bad' }
 
 export function Overview() {
   const s = useSection('overview')
-  return <Load s={s}>{(d) => {
+  return <Load s={s} v="overview">{(d) => {
     const p = d.profile, first = (p.fullName || '').trim().split(/\s+/)[0]
     const initials = (p.fullName || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     return (
@@ -137,7 +137,6 @@ export function Aptitude() {
 
 export function Coding() {
   const s = useSection('coding')
-  const soon = useComingSoon()
   return <Load s={s}>{(d) => (
     <>
       <Head title="Coding test" sub={`${d.solved}/${d.total} problems solved · ${d.streakDays}-day streak · ${d.languages.join(', ')}`} />
@@ -146,7 +145,7 @@ export function Coding() {
         <tbody>{d.problems.map((p) => (
           <tr key={p.id}><td>{p.id}</td><td><b>{p.title}</b></td><td>{p.topic}</td>
             <td><span className={`status ${diffClass[p.difficulty]}`} style={{ marginTop: 0 }}>{p.difficulty}</span></td>
-            <td>{p.status}</td><td><button className="linkbtn" onClick={() => soon('Coding editor')}>{p.status === 'Solved' ? 'Review' : 'Open'}</button></td></tr>
+            <td>{p.status}</td><td><a className="linkbtn" href={p.url} target="_blank" rel="noopener noreferrer">{p.status === 'Solved' ? 'Review' : 'Solve'} ↗</a></td></tr>
         ))}</tbody></table></div>
     </>
   )}</Load>
@@ -210,7 +209,7 @@ export function SkillGaps() {
         </section>
         <section className="card"><h2>Suggested resources</h2>
           {d.resources.length === 0 ? <p className="muted">No gaps to close. Nice work.</p> :
-            <ul className="plain">{d.resources.map((r) => <li key={r.id}><span><b>{r.title}</b><div className="muted" style={{ fontSize: 12 }}>{r.type} · {r.skill}</div></span><span className="muted">{r.duration}</span></li>)}</ul>}
+            <ul className="plain">{d.resources.map((r) => <li key={r.id}><span><a href={r.url} target="_blank" rel="noopener noreferrer"><b>{r.title} ↗</b></a><div className="muted" style={{ fontSize: 12 }}>{r.type} · {r.skill}</div></span><span className="muted">{r.duration}</span></li>)}</ul>}
         </section>
       </div>
     </>
@@ -265,13 +264,12 @@ export function Progress() {
 export function Resources() {
   const [rows, setRows] = useState(null)
   useEffect(() => { api.resources().then(setRows).catch(() => setRows([])) }, [])
-  const soon = useComingSoon()
-  if (!rows) return <Loading />
+  if (!rows) return <Loading variant="table" />
   return (
     <>
       <Head title="Resources" sub="Learning material mapped to skills." />
       <div className="tablewrap"><table><thead><tr><th>Title</th><th>Type</th><th>Skill</th><th>Duration</th><th /></tr></thead>
-        <tbody>{rows.map((r) => <tr key={r.id}><td><b>{r.title}</b></td><td>{r.type}</td><td>{r.skill}</td><td>{r.duration}</td><td><button className="linkbtn" onClick={() => soon(r.title)}>Open</button></td></tr>)}</tbody></table></div>
+        <tbody>{rows.map((r) => <tr key={r.id}><td><b>{r.title}</b></td><td>{r.type}</td><td>{r.skill}</td><td>{r.duration}</td><td><a className="linkbtn" href={r.url} target="_blank" rel="noopener noreferrer">Open ↗</a></td></tr>)}</tbody></table></div>
     </>
   )
 }

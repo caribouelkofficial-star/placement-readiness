@@ -21,8 +21,13 @@ svg{max-width:100%}
 .splash{min-height:60vh;display:grid;place-content:center;justify-items:center;padding:24px}
 .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgb(var(--line));border-top-color:rgb(var(--brand));animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.skel{min-height:200px;background:linear-gradient(100deg,rgb(var(--surface)) 30%,rgb(var(--surface-2)) 50%,rgb(var(--surface)) 70%);background-size:200% 100%;animation:shimmer 1.4s infinite linear}
-@keyframes shimmer{to{background-position:-200% 0}}
+.sk{display:block;max-width:100%;border-radius:8px;background:linear-gradient(100deg,rgb(var(--surface-2)) 30%,rgb(var(--line)) 50%,rgb(var(--surface-2)) 70%);background-size:200% 100%;animation:shimmer 1.4s infinite linear}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.sk-card{display:grid;gap:14px;align-content:start;min-height:220px}
+.sk-row{display:grid;gap:8px}
+.sk-table{padding:6px 0}.sk-tr{display:flex;gap:5%;padding:16px;border-top:1px solid rgb(var(--line))}.sk-tr:first-child{border-top:0}
+.welcome .sk,.kpi .sk{background-color:transparent}
+.kpi .sk+.sk{margin-top:6px}
 .alert{display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding:16px;border-radius:14px;border:1px solid rgb(var(--bad)/.35);background:rgb(var(--bad)/.1);color:rgb(var(--bad));font-weight:600;font-size:14px}
 .alert .btn{color:rgb(var(--ink))}
 

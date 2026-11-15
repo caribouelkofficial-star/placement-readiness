@@ -122,14 +122,50 @@ export const Metric = ({ label, value, note }) => (
   </div>
 )
 
-export function Loading({ page = false }) {
+const Sk = ({ w, h = 12, r, style }) => <span className="sk" style={{ width: w, height: h, borderRadius: r, ...style }} />
+const SkCard = ({ rows = 4, circle = false }) => (
+  <div className="card sk-card">
+    <Sk w="45%" h={16} />
+    {circle && <Sk w={150} h={150} r="50%" style={{ margin: '8px auto' }} />}
+    {Array.from({ length: rows }, (_, i) => <div key={i} className="sk-row"><Sk w={`${60 + ((i * 17) % 30)}%`} /><Sk h={8} /></div>)}
+  </div>
+)
+
+function Skeleton({ variant }) {
+  if (variant === 'table') {
+    return (
+      <>
+        <div className="pagehead"><Sk w="40%" h={26} /><Sk w="60%" h={12} style={{ marginTop: 8 }} /></div>
+        <div className="tablewrap"><div className="sk-table">
+          {Array.from({ length: 7 }, (_, i) => <div key={i} className="sk-tr"><Sk w="14%" /><Sk w="34%" /><Sk w="18%" /><Sk w="14%" /></div>)}
+        </div></div>
+      </>
+    )
+  }
+  if (variant === 'overview') {
+    return (
+      <>
+        <div className="welcome"><div className="hello"><Sk w={52} h={52} r={16} /><div style={{ flex: 1 }}><Sk w="30%" h={12} /><Sk w="60%" h={26} style={{ marginTop: 10 }} /></div></div>
+          <div className="pills"><Sk w={150} h={30} r={999} /><Sk w={190} h={30} r={999} /></div></div>
+        <div className="kpis">{[0, 1, 2].map((i) => <div key={i} className="card kpi"><Sk w={26} h={22} /><Sk w="70%" h={10} /></div>)}</div>
+        <div className="grid3"><SkCard circle rows={1} /><SkCard rows={4} /><SkCard rows={3} /></div>
+      </>
+    )
+  }
+  return (
+    <>
+      <div className="pagehead"><Sk w="40%" h={26} /><Sk w="60%" h={12} style={{ marginTop: 8 }} /></div>
+      <div className="grid3"><SkCard /><SkCard /><SkCard /></div>
+    </>
+  )
+}
+
+export function Loading({ page = false, variant = 'cards' }) {
   const [slow, setSlow] = useState(false)
   useEffect(() => { const t = setTimeout(() => setSlow(true), 5000); return () => clearTimeout(t) }, [])
   return (
-    <div className={page ? 'splash' : ''} role="status" aria-live="polite">
-      {page ? <span className="spinner" /> : (
-        <div className="grid3"><div className="card skel" /><div className="card skel" /><div className="card skel" /></div>
-      )}
+    <div className={page ? 'splash' : ''} role="status" aria-live="polite" aria-busy="true">
+      {page ? <span className="spinner" /> : <Skeleton variant={variant} />}
       <span className="sr">Loading</span>
       {slow && <p className="muted note" style={{ marginTop: 14, textAlign: page ? 'center' : 'left' }}>Still loading. The server may be waking up after a quiet period, which can take up to a minute.</p>}
     </div>

@@ -26,10 +26,10 @@ public class MockData {
             "React, Firebase", "Java, JDBC", "Python, Pandas", "React, REST APIs", "Spring Boot, PostgreSQL"};
     private static final String[] CERTS = {"Oracle Java SE Associate", "AWS Cloud Practitioner", "HackerRank SQL (Intermediate)",
             "Google Data Analytics (in progress)", "NPTEL: Data Structures", "Coursera: Python for Everybody"};
-    private static final String[][] PROBLEMS = {{"Two Sum", "Easy", "Arrays"}, {"Valid Parentheses", "Easy", "Stacks"},
-            {"Merge Intervals", "Medium", "Arrays"}, {"LRU Cache", "Medium", "Design"}, {"Binary Tree Level Order", "Medium", "Trees"},
-            {"Longest Substring Without Repeating", "Medium", "Strings"}, {"Course Schedule", "Medium", "Graphs"},
-            {"Coin Change", "Medium", "DP"}, {"Word Ladder", "Hard", "Graphs"}, {"Median of Two Sorted Arrays", "Hard", "Binary Search"}};
+    private static final String[][] PROBLEMS = {{"Two Sum", "Easy", "Arrays", "https://leetcode.com/problems/two-sum/"}, {"Valid Parentheses", "Easy", "Stacks", "https://leetcode.com/problems/valid-parentheses/"},
+            {"Merge Intervals", "Medium", "Arrays", "https://leetcode.com/problems/merge-intervals/"}, {"LRU Cache", "Medium", "Design", "https://leetcode.com/problems/lru-cache/"}, {"Binary Tree Level Order", "Medium", "Trees", "https://leetcode.com/problems/binary-tree-level-order-traversal/"},
+            {"Longest Substring Without Repeating", "Medium", "Strings", "https://leetcode.com/problems/longest-substring-without-repeating-characters/"}, {"Course Schedule", "Medium", "Graphs", "https://leetcode.com/problems/course-schedule/"},
+            {"Coin Change", "Medium", "DP", "https://leetcode.com/problems/coin-change/"}, {"Word Ladder", "Hard", "Graphs", "https://leetcode.com/problems/word-ladder/"}, {"Median of Two Sorted Arrays", "Hard", "Binary Search", "https://leetcode.com/problems/median-of-two-sorted-arrays/"}};
 
     private static Random rnd(Dtos.Profile p, long salt) {
         return new Random(p.id().getMostSignificantBits() ^ (p.id().getLeastSignificantBits() * 31) ^ (salt * 0x9E3779B97F4A7C15L));
@@ -178,7 +178,7 @@ public class MockData {
             double chance = (a.codingScore() - difficultyPenalty) / 100.0 + r.nextDouble() * 0.3 - 0.1;
             String status = chance > 0.55 ? "Solved" : chance > 0.3 ? "Attempted" : "Not started";
             if (status.equals("Solved")) solved++;
-            problems.add(Map.of("id", i + 1, "title", pr[0], "difficulty", pr[1], "topic", pr[2], "status", status));
+            problems.add(Map.of("id", i + 1, "title", pr[0], "difficulty", pr[1], "topic", pr[2], "status", status, "url", pr[3]));
         }
         var langs = a.skills().stream().filter(s -> List.of("Java", "Python", "SQL").contains(s)).toList();
         return Map.of("score", a.codingScore(), "solved", solved, "total", PROBLEMS.length, "streakDays", r.nextInt(12),

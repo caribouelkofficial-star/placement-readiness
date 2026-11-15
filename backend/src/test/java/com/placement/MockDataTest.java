@@ -16,7 +16,7 @@ class MockDataTest {
     final List<Role> roles = List.of(
             new Role("a", "Alpha", "d", "s", Map.of("Java", 70, "SQL", 60)),
             new Role("b", "Beta", "d", "s", Map.of("React", 70, "Git", 50)));
-    final List<Resource> res = List.of(new Resource(1, "R", "Course", "Java", "1h"));
+    final List<Resource> res = List.of(new Resource(1, "R", "Course", "Java", "1h", "https://example.org"));
 
     StudentDashboard student(UUID id, int coding) {
         return new StudentDashboard(new Profile(id, "S", "s@x.com", "student", "CSE", "+91 9876543210"),

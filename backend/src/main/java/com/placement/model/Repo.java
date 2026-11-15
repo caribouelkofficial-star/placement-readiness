@@ -77,7 +77,7 @@ public class Repo {
     }
 
     public record Role(String slug, String title, String description, String salary, java.util.Map<String, Integer> required) {}
-    public record Resource(int id, String title, String type, String skill, String duration) {}
+    public record Resource(int id, String title, String type, String skill, String duration, String url) {}
 
     private final com.fasterxml.jackson.databind.ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
 
@@ -96,9 +96,9 @@ public class Repo {
     }
 
     public List<Resource> resources() {
-        return jdbc.query("select id, title, type, skill, duration from public.resources order by id",
+        return jdbc.query("select id, title, type, skill, duration, url from public.resources order by id",
                 (rs, i) -> new Resource(rs.getInt("id"), rs.getString("title"), rs.getString("type"),
-                        rs.getString("skill"), rs.getString("duration")));
+                        rs.getString("skill"), rs.getString("duration"), rs.getString("url")));
     }
 
     public java.util.Map<String, Object> adminStats() {
