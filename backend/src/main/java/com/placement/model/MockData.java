@@ -40,8 +40,22 @@ public class MockData {
     private static <T> T pick(Random r, T[] a) { return a[r.nextInt(a.length)]; }
 
     /** Student skill levels (0-100), stable per student. */
+    /** The signed-in student's onboarding answers for the request being served (null for seeded demo students). */
+    private final ThreadLocal<Onboarding> ob = new ThreadLocal<>();
+
     private Map<String, Integer> skillLevels(StudentDashboard d) {
         var p = d.profile(); var a = d.academics(); var r = rnd(p, 1);
+        var o = ob.get();
+        if (o != null) {
+            double bonus = switch (o.experienceLevel()) { case "Advanced" -> 8; case "Intermediate" -> 0; default -> -6; };
+            var m = new LinkedHashMap<String, Integer>();
+            for (String s : SKILLS) {
+                double base = o.skills().contains(s) ? a.codingScore() + bonus + 6 + r.nextGaussian() * 6
+                        : a.codingScore() - 28 + r.nextGaussian() * 8;
+                m.put(s, clamp(base));
+            }
+            return m;
+        }
         double tech = a.codingScore() * 0.65 + a.cgpa() * 10 * 0.35;
         var m = new LinkedHashMap<String, Integer>();
         for (String s : SKILLS) {
@@ -74,7 +88,23 @@ public class MockData {
         return out;
     }
 
-    public Object section(String name, StudentDashboard d, List<Role> roles, List<Resource> resources) {
+    /** The role the student chose during onboarding, otherwise their best match. */
+    private Map<String, Object> target(List<Map<String, Object>> ms) {
+        var o = ob.get();
+        if (o != null) for (var m : ms) if (m.get("title").equals(o.targetRole())) return m;
+        return ms.get(0);
+    }
+
+    public Object section(String name, StudentDashboard d, List<Role> roles, List<Resource> resources, Onboarding onboarding) {
+        ob.set(onboarding);
+        try {
+            return section(name, d, roles, resources);
+        } finally {
+            ob.remove();
+        }
+    }
+
+    private Object section(String name, StudentDashboard d, List<Role> roles, List<Resource> resources) {
         return switch (name) {
             case "overview" -> overview(d, roles);
             case "profile" -> profile(d);
@@ -109,8 +139,11 @@ public class MockData {
         m.put("profile", p); m.put("readiness", d.readiness()); m.put("competencies", comps);
         m.put("topCareers", matches(d, roles).stream().limit(3).toList());
         m.put("assessmentCoverage", 60 + r.nextInt(41));
-        m.put("stats", Map.of("testsTaken", 2 + r.nextInt(9), "problemsSolved", Math.max(3, a.codingScore() / 3 + r.nextInt(10)),
-                "streakDays", r.nextInt(15)));
+        m.put("targetRole", target(matches(d, roles)).get("title"));
+        var o = ob.get();
+        m.put("stats", Map.of("testsTaken", 2 + r.nextInt(9),
+                "problemsSolved", o != null ? o.problemsSolved() : Math.max(3, a.codingScore() / 3 + r.nextInt(10)),
+                "streakDays", o != null ? Math.min(30, o.practiceHoursPerWeek() * 2 / 3 + r.nextInt(4)) : r.nextInt(15)));
         m.put("recentActivity", activity);
         return m;
     }
@@ -127,6 +160,8 @@ public class MockData {
         }
         var certs = new ArrayList<String>();
         for (int i = 0; i < r.nextInt(3) + (a.codingScore() > 70 ? 1 : 0); i++) certs.add(CERTS[(r.nextInt(CERTS.length) + i) % CERTS.length]);
+        var o = ob.get();
+        if (o != null) return onboardedProfile(p, a, o, r);
         var m = new LinkedHashMap<String, Object>();
         m.put("fullName", p.fullName()); m.put("email", p.email());
         m.put("branch", p.branch() != null ? p.branch() : pick(r, new String[]{"CSE", "IT", "ECE", "AI&DS"}));
@@ -137,6 +172,27 @@ public class MockData {
         m.put("cgpa", a.cgpa()); m.put("skills", a.skills());
         m.put("bio", "Final-year student interested in " + (a.codingScore() >= 70 ? "backend and systems engineering" : "building a strong foundation in software development") + ".");
         m.put("projects", projects); m.put("certifications", new LinkedHashSet<>(certs));
+        return m;
+    }
+
+    private Object onboardedProfile(Dtos.Profile p, Dtos.Academics a, Onboarding o, Random r) {
+        var projects = new ArrayList<Map<String, String>>();
+        for (int i = 0; i < Math.min(o.projects(), 6); i++)
+            projects.add(Map.of("name", PROJECT_NAMES[(i * 3 + Math.floorMod(p.id().hashCode(), 8)) % PROJECT_NAMES.length],
+                    "tech", PROJECT_TECH[(i * 5 + Math.floorMod(p.id().hashCode(), 8)) % PROJECT_TECH.length],
+                    "summary", "Built as a " + (i % 2 == 0 ? "team" : "solo") + " project over " + (4 + (i * 3) % 9) + " weeks."));
+        var certs = new LinkedHashSet<String>();
+        if (o.certifications() != null) for (String c : o.certifications().split("[,\n]")) if (!c.isBlank()) certs.add(c.trim());
+        var m = new LinkedHashMap<String, Object>();
+        m.put("fullName", p.fullName()); m.put("email", p.email()); m.put("phone", p.phone());
+        m.put("branch", o.branch()); m.put("college", o.college()); m.put("degree", o.degree());
+        m.put("graduationYear", o.graduationYear()); m.put("location", o.location());
+        m.put("cgpa", o.cgpa()); m.put("skills", o.skills());
+        m.put("bio", o.bio() != null && !o.bio().isBlank() ? o.bio() : "Aspiring " + o.targetRole() + " from " + o.college() + ".");
+        m.put("projects", projects); m.put("certifications", certs);
+        m.put("academicRecord", Map.of("tenthPct", o.tenthPct(), "twelfthPct", o.twelfthPct(), "backlogs", o.backlogs(),
+                "internships", o.internships(), "experienceLevel", o.experienceLevel(), "targetRole", o.targetRole(),
+                "practiceHoursPerWeek", o.practiceHoursPerWeek(), "problemsSolved", o.problemsSolved()));
         return m;
     }
 
@@ -202,7 +258,7 @@ public class MockData {
     @SuppressWarnings("unchecked")
     private Object gaps(StudentDashboard d, List<Role> roles, List<Resource> resources) {
         var ms = matches(d, roles);
-        var target = ms.get(0);
+        var target = target(ms);
         var role = roles.stream().filter(x -> x.slug().equals(target.get("slug"))).findFirst().get();
         var levels = skillLevels(d);
         var gaps = new ArrayList<Map<String, Object>>();
@@ -221,7 +277,7 @@ public class MockData {
         var weak = new ArrayList<>(skillLevels(d).entrySet());
         weak.sort(Map.Entry.comparingByValue());
         String s1 = weak.get(0).getKey(), s2 = weak.get(1).getKey(), s3 = weak.get(2).getKey();
-        String role = (String) matches(d, roles).get(0).get("title");
+        String role = (String) target(matches(d, roles)).get("title");
         record Ph(String name, String days, String focus, String[] tasks) {}
         var phases = List.of(
                 new Ph("Foundation", "Days 1–30", "Close the biggest skill gaps",

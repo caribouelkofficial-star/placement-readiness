@@ -59,7 +59,7 @@ export function AdminStudents() {
             onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/students/${r.id}/overview`)}>
             <td><b>{r.fullName}</b><div className="muted" style={{ fontSize: 12 }}>{r.email}</div></td>
             <td>{r.branch || '—'}</td><td>{fmt(r.lastLoginAt)}</td><td>{r.loginCount}</td>
-            <td>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></td>
+            <td>{r.onboarded ? <>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></> : <span className="status s-brand" style={{ marginTop: 0 }}>Onboarding pending</span>}</td>
             <td><Link className="linkbtn" to={`/admin/students/${r.id}/overview`}>View</Link></td>
           </tr>))}</tbody></table></div>
     </>

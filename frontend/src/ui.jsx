@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 const PATHS = {
   overview: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
@@ -55,7 +54,7 @@ export function ThemeToggle() {
   )
 }
 
-export function Footer({ full = false }) {
+export function Footer({ full = false, onAuth }) {
   const year = new Date().getFullYear()
   if (!full) {
     return <footer className="appfoot"><span>© {year} PlaceReady</span><span>Scores and dashboards use sample data for demonstration.</span></footer>
@@ -73,7 +72,7 @@ export function Footer({ full = false }) {
         </nav>
         <nav aria-label="Account">
           <h4>Get started</h4>
-          <Link to="/login">Sign in</Link><Link to="/login?mode=signup">Create an account</Link>
+          <button type="button" onClick={() => onAuth?.('login')}>Sign in</button><button type="button" onClick={() => onAuth?.('signup')}>Create an account</button>
         </nav>
         <nav aria-label="Who it is for">
           <h4>Built for</h4>

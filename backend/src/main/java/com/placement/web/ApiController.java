@@ -2,6 +2,7 @@ package com.placement.web;
 
 import com.placement.model.Dtos.*;
 import com.placement.model.MockData;
+import com.placement.model.Onboarding;
 import com.placement.model.Repo;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +28,29 @@ public class ApiController {
     private Object section(String name, UUID profileId) {
         if (!SECTIONS.contains(name)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         var d = repo.dashboard(profileId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return mock.section(name, d, repo.roles(), repo.resources());
+        if (!d.profile().onboarded())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Student has not completed onboarding");
+        return mock.section(name, d, repo.roles(), repo.resources(), repo.onboarding(profileId).orElse(null));
+    }
+
+    @GetMapping("/student/onboarding")
+    public ResponseEntity<Onboarding> getOnboarding(Authentication auth) {
+        return repo.onboarding(current(auth).id()).map(ResponseEntity::ok).orElse(ResponseEntity.noContent().build());
+    }
+
+    @PostMapping("/student/onboarding")
+    public Profile saveOnboarding(@RequestBody Onboarding body, Authentication auth) {
+        var me = current(auth);
+        var roleTitles = repo.roles().stream().map(Repo.Role::title).collect(java.util.stream.Collectors.toSet());
+        String error = body.validate(roleTitles);
+        if (error != null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error);
+        repo.saveOnboarding(me.id(), body, body.scores());
+        return current(auth);
+    }
+
+    @GetMapping("/roles")
+    public List<Repo.Role> allRoles() {
+        return repo.roles();
     }
 
     @GetMapping("/student/{section}")

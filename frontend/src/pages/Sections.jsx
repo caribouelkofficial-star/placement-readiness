@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { Gauge, Metric, Icon, Loading, ErrorNote, levelTone, tone, fmtDate } from '../ui'
 import { useComingSoon, useSection } from '../data'
 
 function Load({ s, v, children }) {
+  if (s.err === 'pending') return <div className="card empty-card"><h2>Onboarding pending</h2><p className="muted">This student has signed up but hasn’t completed onboarding yet, so there’s nothing to show.</p></div>
   if (s.err) return <ErrorNote>Could not load this page.</ErrorNote>
   if (!s.data) return <Loading variant={v} />
   return children(s.data)
@@ -86,6 +88,16 @@ export function Profile() {
           <h2 style={{ marginTop: 16 }}>Certifications</h2>
           {d.certifications.length ? <ul className="plain">{d.certifications.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="muted">None added yet.</p>}
         </section>
+        {d.academicRecord && (
+          <section className="card"><h2>Academic record</h2>
+            <dl className="kv">
+              <dt>10th</dt><dd>{d.academicRecord.tenthPct}%</dd><dt>12th</dt><dd>{d.academicRecord.twelfthPct}%</dd>
+              <dt>Backlogs</dt><dd>{d.academicRecord.backlogs}</dd><dt>Internships</dt><dd>{d.academicRecord.internships}</dd>
+              <dt>Level</dt><dd>{d.academicRecord.experienceLevel}</dd><dt>Target role</dt><dd>{d.academicRecord.targetRole}</dd>
+              <dt>Practice</dt><dd>{d.academicRecord.practiceHoursPerWeek} hrs/week</dd><dt>Solved</dt><dd>{d.academicRecord.problemsSolved} problems</dd>
+            </dl>
+          </section>
+        )}
         <section className="card"><h2>Projects</h2>
           {d.projects.map((p) => <div key={p.name} style={{ marginBottom: 12 }}><b>{p.name}</b><div className="muted" style={{ fontSize: 13 }}>{p.tech}</div><div style={{ fontSize: 13 }}>{p.summary}</div></div>)}
         </section>
@@ -280,6 +292,10 @@ export function Settings() {
   return (
     <>
       <Head title="Settings" />
+      <section className="card" style={{ maxWidth: 520, marginBottom: 16 }}><h2>Profile details</h2>
+        <p className="muted" style={{ fontSize: 14 }}>Update your academics, skills and target role. Your dashboard recalculates from these answers.</p>
+        <p className="rowbtn"><Link className="btn" to="/onboarding">Edit my details</Link></p>
+      </section>
       <section className="card" style={{ maxWidth: 520 }}><h2>Preferences</h2>
         {[['email', 'Email me about new assessments'], ['weekly', 'Weekly progress summary'], ['share', 'Share my profile with the placement cell']].map(([k, label]) => (
           <label className="task" key={k}><input type="checkbox" checked={prefs[k]} onChange={() => setPrefs({ ...prefs, [k]: !prefs[k] })} />{label}</label>

@@ -12,7 +12,7 @@ export function useSection(name) {
     setState({ data: null, err: null })
     ctx.fetch(name)
       .then((data) => !cancelled && setState({ data, err: null }))
-      .catch(() => !cancelled && setState({ data: null, err: 'Failed to load.' }))
+      .catch((e) => !cancelled && setState({ data: null, err: e.status === 409 ? 'pending' : 'Failed to load.' }))
     return () => { cancelled = true }
   }, [ctx, name])
   return state

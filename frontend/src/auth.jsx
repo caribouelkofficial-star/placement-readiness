@@ -48,9 +48,10 @@ export function AuthProvider({ children }) {
     return data
   }
   const logout = () => supabase.auth.signOut()
+  const refreshMe = () => api.me().then(setMe)
 
   return (
-    <AuthContext.Provider value={{ session, me, loading, error, login, signup, logout }}>
+    <AuthContext.Provider value={{ session, me, loading, error, login, signup, logout, refreshMe }}>
       {children}
     </AuthContext.Provider>
   )

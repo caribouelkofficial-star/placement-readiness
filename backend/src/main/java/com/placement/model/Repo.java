@@ -27,11 +27,11 @@ public class Repo {
 
     private static Profile profile(ResultSet rs) throws SQLException {
         return new Profile(rs.getObject("id", UUID.class), rs.getString("full_name"), rs.getString("email"),
-                rs.getString("role"), rs.getString("branch"), rs.getString("phone"));
+                rs.getString("role"), rs.getString("branch"), rs.getString("phone"), rs.getBoolean("onboarded"));
     }
 
     public Optional<Profile> profileByAuthUser(UUID authUserId) {
-        return jdbc.query("select id, full_name, email, role, branch, phone from public.profiles where auth_user_id = ?",
+        return jdbc.query("select id, full_name, email, role, branch, phone, onboarded from public.profiles where auth_user_id = ?",
                 (rs, i) -> profile(rs), authUserId).stream().findFirst();
     }
 
@@ -43,7 +43,7 @@ public class Repo {
 
     public Optional<StudentDashboard> dashboard(UUID profileId) {
         return jdbc.query("""
-                select p.id, p.full_name, p.email, p.role, p.branch, p.phone,
+                select p.id, p.full_name, p.email, p.role, p.branch, p.phone, p.onboarded,
                        a.cgpa, a.aptitude_score, a.coding_score, a.communication_score, a.skills,
                        r.score, r.level, r.recommended_skills, r.recommended_careers
                 from public.profiles p
@@ -65,15 +65,15 @@ public class Repo {
         return jdbc.query("""
                 select p.id, p.full_name, p.email, p.branch, p.last_login_at,
                        (select count(*) from public.login_events e where e.profile_id = p.id) as logins,
-                       r.score, r.level
+                       r.score, r.level, p.onboarded
                 from public.profiles p
                 join public.readiness_scores r on r.profile_id = p.id
-                where p.role = 'student'
+                where p.role = 'student' and p.auth_user_id is not null
                 order by p.last_login_at desc nulls last""",
                 (rs, i) -> new StudentSummary(rs.getObject("id", UUID.class), rs.getString("full_name"),
                         rs.getString("email"), rs.getString("branch"),
                         rs.getObject("last_login_at", OffsetDateTime.class), rs.getInt("logins"),
-                        rs.getInt("score"), rs.getString("level")));
+                        rs.getInt("score"), rs.getString("level"), rs.getBoolean("onboarded")));
     }
 
     public record Role(String slug, String title, String description, String salary, java.util.Map<String, Integer> required) {}
@@ -103,23 +103,76 @@ public class Repo {
 
     public java.util.Map<String, Object> adminStats() {
         var m = new java.util.LinkedHashMap<String, Object>();
-        m.put("totalStudents", jdbc.queryForObject("select count(*) from public.profiles where role = 'student'", Integer.class));
+        m.put("totalStudents", jdbc.queryForObject("select count(*) from public.profiles where role = 'student' and auth_user_id is not null", Integer.class));
         m.put("averageScore", jdbc.queryForObject(
-                "select coalesce(round(avg(r.score)), 0) from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student'", Integer.class));
+                "select coalesce(round(avg(r.score)), 0) from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student' and p.auth_user_id is not null and p.onboarded", Integer.class));
         m.put("activeLast7Days", jdbc.queryForObject(
-                "select count(*) from public.profiles where role = 'student' and last_login_at > now() - interval '7 days'", Integer.class));
-        m.put("levels", jdbc.query("select r.level, count(*) c from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student' group by r.level",
+                "select count(*) from public.profiles where role = 'student' and auth_user_id is not null and last_login_at > now() - interval '7 days'", Integer.class));
+        m.put("levels", jdbc.query("select r.level, count(*) c from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student' and p.auth_user_id is not null and p.onboarded group by r.level",
                 (rs, i) -> java.util.Map.of("level", rs.getString("level"), "count", rs.getInt("c"))));
         m.put("branches", jdbc.query("""
                 select coalesce(p.branch, 'Unassigned') b, count(*) c, round(avg(r.score)) a
                 from public.profiles p join public.readiness_scores r on r.profile_id = p.id
-                where p.role = 'student' group by 1 order by 2 desc""",
+                where p.role = 'student' and p.auth_user_id is not null and p.onboarded group by 1 order by 2 desc""",
                 (rs, i) -> java.util.Map.of("branch", rs.getString("b"), "count", rs.getInt("c"), "averageScore", rs.getInt("a"))));
         m.put("recentLogins", jdbc.query("""
                 select p.id, p.full_name, e.logged_in_at from public.login_events e join public.profiles p on p.id = e.profile_id
+                where p.auth_user_id is not null
                 order by e.logged_in_at desc limit 8""",
                 (rs, i) -> java.util.Map.of("id", rs.getObject("id", UUID.class), "fullName", rs.getString("full_name"),
                         "at", rs.getObject("logged_in_at", OffsetDateTime.class))));
         return m;
+    }
+
+    public Optional<Onboarding> onboarding(UUID profileId) {
+        return jdbc.query("select data::text from public.student_onboarding where profile_id = ?", (rs, i) -> {
+            try {
+                return json.readValue(rs.getString(1), Onboarding.class);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                throw new SQLException(e);
+            }
+        }, profileId).stream().findFirst();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void saveOnboarding(UUID profileId, Onboarding o, Onboarding.Scores s) {
+        String data;
+        try {
+            data = json.writeValueAsString(o);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+        jdbc.update("update public.profiles set full_name = ?, branch = ?, onboarded = true where id = ?",
+                o.fullName().trim(), o.branch(), profileId);
+        jdbc.update("""
+                insert into public.student_onboarding (profile_id, data) values (?, ?::jsonb)
+                on conflict (profile_id) do update set data = excluded.data, updated_at = now()""", profileId, data);
+        jdbc.update(con -> {
+            var ps = con.prepareStatement("""
+                    insert into public.student_academics (profile_id, cgpa, aptitude_score, coding_score, communication_score, skills)
+                    values (?, ?, ?, ?, ?, ?)
+                    on conflict (profile_id) do update set cgpa = excluded.cgpa, aptitude_score = excluded.aptitude_score,
+                      coding_score = excluded.coding_score, communication_score = excluded.communication_score, skills = excluded.skills""");
+            ps.setObject(1, profileId);
+            ps.setBigDecimal(2, java.math.BigDecimal.valueOf(o.cgpa()).setScale(2, java.math.RoundingMode.HALF_UP));
+            ps.setInt(3, s.aptitude());
+            ps.setInt(4, s.coding());
+            ps.setInt(5, s.communication());
+            ps.setArray(6, con.createArrayOf("text", o.skills().toArray()));
+            return ps;
+        });
+        jdbc.update(con -> {
+            var ps = con.prepareStatement("""
+                    insert into public.readiness_scores (profile_id, score, level, recommended_skills, recommended_careers)
+                    values (?, ?, ?, ?, ?)
+                    on conflict (profile_id) do update set score = excluded.score, level = excluded.level,
+                      recommended_skills = excluded.recommended_skills, recommended_careers = excluded.recommended_careers""");
+            ps.setObject(1, profileId);
+            ps.setInt(2, s.readiness());
+            ps.setString(3, s.level());
+            ps.setArray(4, con.createArrayOf("text", s.recommendedSkills().toArray()));
+            ps.setArray(5, con.createArrayOf("text", s.recommendedCareers().toArray()));
+            return ps;
+        });
     }
 }

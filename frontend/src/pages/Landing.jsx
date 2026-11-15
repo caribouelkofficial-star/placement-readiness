@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Logo, ThemeToggle, Gauge, Metric, Icon, Footer } from '../ui'
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Logo, ThemeToggle, Icon, Footer } from '../ui'
+import Hero from './Hero'
+import AuthModal from './AuthModal'
 
 const features = [
   ['readiness', 'Transparent readiness score', 'One 0–100 score built from CGPA, aptitude, coding and communication, with the weights shown.'],
@@ -15,6 +17,12 @@ const steps = [
 ]
 
 export default function Landing() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const initial = params.get('auth')
+  const [auth, setAuth] = useState(initial === 'signup' || initial === 'login' ? initial : null)
+  const openAuth = (m) => setAuth(m)
+  const closeAuth = useCallback(() => { setAuth(null); if (params.get('auth')) navigate('/', { replace: true }) }, [params, navigate])
   useEffect(() => { document.title = 'PlaceReady: Know your potential. Get placement ready.' }, [])
   return (
     <div className="land" id="top">
@@ -23,31 +31,12 @@ export default function Landing() {
           <Link to="/" aria-label="PlaceReady home"><Logo /></Link>
           <div className="right">
             <ThemeToggle />
-            <Link className="btn hide-s" to="/login">Log in</Link>
-            <Link className="btn primary" to="/login?mode=signup">Get started</Link>
+            <button type="button" className="btn hide-s" onClick={() => openAuth('login')}>Log in</button>
+            <button type="button" className="btn primary" onClick={() => openAuth('signup')}>Get started</button>
           </div>
         </header>
         <main>
-          <section className="hero">
-            <div>
-              <span className="badge"><Icon name="spark" size={14} />Skill-based career guidance</span>
-              <h1>Know your potential.<br /><span className="grad">Get placement ready.</span></h1>
-              <p className="lead">PlaceReady measures your readiness across academics, aptitude, coding and communication, then points you to the skills and roles to focus on.</p>
-              <div className="cta">
-                <Link className="btn primary lg" to="/login?mode=signup">Check my readiness<Icon name="arrow" size={16} /></Link>
-                <a className="btn lg" href="#features">Explore features</a>
-              </div>
-              <div className="checks"><span>Transparent scoring</span><span>Role-based access</span><span>No paid AI APIs</span></div>
-            </div>
-            <div className="card preview" aria-label="Sample dashboard preview">
-              <Gauge value={72} label="Readiness" />
-              <div>
-                <h2>Category scores</h2>
-                <Metric label="Aptitude" value={66} /><Metric label="Coding" value={71} /><Metric label="Communication" value={78} />
-                <p className="muted note">Sample numbers for illustration.</p>
-              </div>
-            </div>
-          </section>
+          <Hero onSignup={() => openAuth('signup')} onLogin={() => openAuth('login')} />
 
           <section className="section" id="features">
             <div className="section-head"><h2>Everything you need to prepare with confidence</h2><p>Clear numbers, clear next steps, and one place for students and the placement cell.</p></div>
@@ -66,11 +55,12 @@ export default function Landing() {
           <section className="band">
             <h2>Ready to see where you stand?</h2>
             <p>Create a free student account and get your readiness score right away.</p>
-            <Link className="btn primary lg" to="/login?mode=signup">Create my account<Icon name="arrow" size={16} /></Link>
+            <button type="button" className="btn primary lg" onClick={() => openAuth('signup')}>Create my account<Icon name="arrow" size={16} /></button>
           </section>
         </main>
       </div>
-      <Footer full />
+      <Footer full onAuth={openAuth} />
+      {auth && <AuthModal mode={auth} onMode={setAuth} onClose={closeAuth} />}
     </div>
   )
 }

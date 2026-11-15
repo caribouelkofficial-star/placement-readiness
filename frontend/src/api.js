@@ -12,6 +12,7 @@ async function request(path, options = {}) {
   if (!res.ok) {
     const err = new Error(`Request failed (${res.status})`)
     err.status = res.status
+    try { err.detail = (await res.json()).message } catch { /* no body */ }
     throw err
   }
   return res.status === 204 ? null : res.json()
@@ -20,6 +21,9 @@ async function request(path, options = {}) {
 export const api = {
   recordLogin: () => request('/api/auth/session', { method: 'POST' }),
   me: () => request('/api/me'),
+  onboarding: () => request('/api/student/onboarding'),
+  saveOnboarding: (body) => request('/api/student/onboarding', { method: 'POST', body: JSON.stringify(body) }),
+  roles: () => request('/api/roles'),
   student: (section) => request(`/api/student/${section}`),
   adminSection: (id, section) => request(`/api/admin/students/${id}/${section}`),
   resources: () => request('/api/resources'),
