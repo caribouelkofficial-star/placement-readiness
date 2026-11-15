@@ -163,7 +163,8 @@ svg{max-width:100%}
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
 .kpi{padding:14px 12px;display:flex;flex-direction:column;gap:2px;border-radius:14px}
 .kpi .ki{display:none;width:38px;height:38px;border-radius:11px;place-items:center;background:rgb(var(--brand-soft));color:rgb(var(--brand));margin-bottom:8px}
-.kpi b{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.kpi div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.kpi b{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
 .kpi span{font-size:12px;color:rgb(var(--muted));line-height:1.3}
 
 /* gauge + bars */
@@ -269,7 +270,6 @@ tbody tr:hover td{background:rgb(var(--surface-2)/.5)}
   .span2{grid-column:span 2}
   .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kpi{flex-direction:row;align-items:center;gap:14px}.kpi .ki{display:grid;margin:0}
-  .kpi div{display:flex;flex-direction:column}
   .welcome{padding:30px}
 }
 
@@ -392,3 +392,31 @@ tbody tr:hover td{background:rgb(var(--surface-2)/.5)}
   .hstats{gap:16px}.hstat b{font-size:20px}
 }
 tr.rowlink{cursor:pointer}tr.rowlink:focus-visible{outline-offset:-2px}
+
+/* ---------- mobile overview polish ---------- */
+@media(max-width:599px){
+  .hello{gap:12px;align-items:center}
+  .hello .av{width:44px;height:44px;border-radius:13px;font-size:16px}
+  .welcome h1{font-size:21px;line-height:1.2;margin:2px 0 0}
+  .welcome .eyebrow{font-size:12px}
+  .welcome .sub{font-size:13px;line-height:1.45}
+  .pills{gap:6px;margin-top:12px}.pill{padding:5px 10px;font-size:12px}
+  .kpis{gap:8px;margin-bottom:14px}
+  .kpi{padding:12px 10px;gap:0;border-radius:12px;align-items:flex-start}
+  .kpi b{font-size:20px}
+  .kpi span{font-size:11px;line-height:1.25}
+  .center-col{padding-bottom:18px}
+  .center-col .card-head{margin-bottom:6px}
+  .gauge{width:min(168px,50vw)}
+  .gauge .num b{font-size:34px}
+  .status{margin-top:12px}
+  .metric{margin:12px 0}
+  .career{padding:10px;gap:10px;margin-bottom:8px}
+  .plain li{padding:9px 0}
+  .timeline li{padding-left:18px}
+  .appfoot{padding:12px 14px;font-size:11px}
+  .pagehead .ph{font-size:21px}
+  .content{padding-top:12px}
+  .topbar{gap:8px;padding:8px 12px}
+  .icon-btn{width:42px;height:42px}
+}
