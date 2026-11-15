@@ -10,13 +10,14 @@ export default function AdminStudentDetail() {
   useEffect(() => { api.adminStudent(id).then(setData).catch(() => setErr('Student not found.')) }, [id])
   return (
     <>
-      <p><Link to="/admin">← All students</Link></p>
-      {err ? <p className="error">{err}</p> : !data ? <p>Loading…</p> : (
+      <p style={{ marginBottom: 14 }}><Link className="linkbtn" to="/admin">← All students</Link></p>
+      {err ? <p className="error">{err}</p> : !data ? <p className="muted">Loading…</p> : (
         <>
-          <StudentView data={data} />
-          <section className="card">
+          <StudentView data={data} admin />
+          <section className="card" style={{ marginTop: 20 }}>
             <h2>Recent logins</h2>
-            <ul>{data.recentLogins.map((t) => <li key={t}>{new Date(t).toLocaleString()}</li>)}</ul>
+            {data.recentLogins.length === 0 ? <p className="muted">No logins yet.</p> :
+              <ul style={{ margin: 0, paddingLeft: 18 }}>{data.recentLogins.map((t) => <li key={t}>{new Date(t).toLocaleString()}</li>)}</ul>}
           </section>
         </>
       )}
