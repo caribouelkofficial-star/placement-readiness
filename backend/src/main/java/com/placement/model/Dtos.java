@@ -7,7 +7,7 @@ import java.util.UUID;
 public final class Dtos {
     private Dtos() {}
 
-    public record Profile(UUID id, String fullName, String email, String role, String branch) {}
+    public record Profile(UUID id, String fullName, String email, String role, String branch, String phone) {}
     public record Academics(double cgpa, int aptitudeScore, int codingScore, int communicationScore, List<String> skills) {}
     public record Readiness(int score, String level, List<String> recommendedSkills, List<String> recommendedCareers) {}
     public record StudentDashboard(Profile profile, Academics academics, Readiness readiness) {}

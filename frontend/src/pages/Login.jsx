@@ -8,6 +8,7 @@ export default function Login() {
   const [params] = useSearchParams()
   const [mode, setMode] = useState(params.get('mode') === 'signup' ? 'signup' : 'login')
   const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [msg, setMsg] = useState(null)
@@ -22,7 +23,7 @@ export default function Login() {
     try {
       if (mode === 'login') await login(email, password)
       else {
-        const data = await signup(fullName, email, password)
+        const data = await signup(fullName, email, password, phone.trim())
         if (!data.session) setMsg({ ok: true, text: 'Account created. Check your email to confirm, then log in.' })
       }
     } catch (err) {
@@ -49,6 +50,7 @@ export default function Login() {
           <div><h1>{signin ? 'Welcome back' : 'Create your account'}</h1>
             <p className="muted">{signin ? 'Sign in to continue your placement preparation.' : 'Sign up as a student to see your readiness.'}</p></div>
           {!signin && <label className="field">Full name<input value={fullName} onChange={(e) => setFullName(e.target.value)} required /></label>}
+          {!signin && <label className="field">Phone number<input type="tel" inputMode="tel" placeholder="+91 98765 43210" pattern="[+]?[0-9 ()-]{7,20}" title="Enter a valid phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required /></label>}
           <label className="field">Email<input type="email" placeholder="you@college.edu" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
           <label className="field">Password<input type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
           {msg && <p className={msg.ok ? 'ok' : 'error'}>{msg.text}</p>}

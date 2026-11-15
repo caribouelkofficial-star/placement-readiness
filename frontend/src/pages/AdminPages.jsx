@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Navigate, useParams } from 'react-router-dom'
+import { Link, NavLink, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { StudentCtx } from '../data'
 import { levelTone } from '../ui'
@@ -46,6 +46,7 @@ export function AdminOverview() {
 
 export function AdminStudents() {
   const { data: rows, err } = useLoad(api.adminStudents)
+  const navigate = useNavigate()
   if (err) return <p className="error">{err}</p>
   if (!rows) return <p className="muted">Loading…</p>
   return (
@@ -54,7 +55,8 @@ export function AdminStudents() {
       <div className="tablewrap"><table>
         <thead><tr><th>Student</th><th>Branch</th><th>Last login</th><th>Logins</th><th>Readiness</th><th /></tr></thead>
         <tbody>{rows.map((r) => (
-          <tr key={r.id}>
+          <tr key={r.id} className="rowlink" tabIndex={0} onClick={() => navigate(`/admin/students/${r.id}/overview`)}
+            onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/students/${r.id}/overview`)}>
             <td><b>{r.fullName}</b><div className="muted" style={{ fontSize: 12 }}>{r.email}</div></td>
             <td>{r.branch || '—'}</td><td>{fmt(r.lastLoginAt)}</td><td>{r.loginCount}</td>
             <td>{r.score}% <span className={`status ${levelTone(r.level)}`} style={{ marginTop: 0, marginLeft: 6 }}>{r.level}</span></td>

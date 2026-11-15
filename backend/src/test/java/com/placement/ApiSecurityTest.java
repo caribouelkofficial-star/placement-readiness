@@ -54,7 +54,7 @@ class ApiSecurityTest {
 
     @Test void meReturnsProfile() throws Exception {
         UUID uid = UUID.randomUUID();
-        when(repo.profileByAuthUser(any())).thenReturn(Optional.of(new Profile(UUID.randomUUID(), "A", "a@x.com", "student", null)));
+        when(repo.profileByAuthUser(any())).thenReturn(Optional.of(new Profile(UUID.randomUUID(), "A", "a@x.com", "student", null, null)));
         mvc.perform(get("/api/me").with(jwt().jwt(j -> j.subject(uid.toString())))).andExpect(status().isOk());
     }
 }

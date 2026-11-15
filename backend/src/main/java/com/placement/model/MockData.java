@@ -130,7 +130,8 @@ public class MockData {
         m.put("branch", p.branch() != null ? p.branch() : pick(r, new String[]{"CSE", "IT", "ECE", "AI&DS"}));
         m.put("college", pick(r, COLLEGES)); m.put("degree", "B.Tech");
         m.put("graduationYear", 2027 + r.nextInt(2)); m.put("location", pick(r, CITIES));
-        m.put("phone", "+91 9" + (100000000 + r.nextInt(899999999)));
+        String fallbackPhone = "+91 9" + (100000000 + r.nextInt(899999999));
+        m.put("phone", p.phone() != null && !p.phone().isBlank() ? p.phone() : fallbackPhone);
         m.put("cgpa", a.cgpa()); m.put("skills", a.skills());
         m.put("bio", "Final-year student interested in " + (a.codingScore() >= 70 ? "backend and systems engineering" : "building a strong foundation in software development") + ".");
         m.put("projects", projects); m.put("certifications", new LinkedHashSet<>(certs));

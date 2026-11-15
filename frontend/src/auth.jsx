@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
     if (error) throw error
     try { await api.recordLogin() } catch { /* non-fatal */ }
   }
-  const signup = async (fullName, email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } })
+  const signup = async (fullName, email, password, phone) => {
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, phone } } })
     if (error) throw error
     if (data.session) { try { await api.recordLogin() } catch { /* non-fatal */ } }
     return data

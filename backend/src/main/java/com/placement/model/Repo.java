@@ -27,11 +27,11 @@ public class Repo {
 
     private static Profile profile(ResultSet rs) throws SQLException {
         return new Profile(rs.getObject("id", UUID.class), rs.getString("full_name"), rs.getString("email"),
-                rs.getString("role"), rs.getString("branch"));
+                rs.getString("role"), rs.getString("branch"), rs.getString("phone"));
     }
 
     public Optional<Profile> profileByAuthUser(UUID authUserId) {
-        return jdbc.query("select id, full_name, email, role, branch from public.profiles where auth_user_id = ?",
+        return jdbc.query("select id, full_name, email, role, branch, phone from public.profiles where auth_user_id = ?",
                 (rs, i) -> profile(rs), authUserId).stream().findFirst();
     }
 
@@ -43,7 +43,7 @@ public class Repo {
 
     public Optional<StudentDashboard> dashboard(UUID profileId) {
         return jdbc.query("""
-                select p.id, p.full_name, p.email, p.role, p.branch,
+                select p.id, p.full_name, p.email, p.role, p.branch, p.phone,
                        a.cgpa, a.aptitude_score, a.coding_score, a.communication_score, a.skills,
                        r.score, r.level, r.recommended_skills, r.recommended_careers
                 from public.profiles p

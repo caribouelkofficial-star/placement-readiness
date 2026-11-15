@@ -19,6 +19,7 @@ export function Overview() {
       <div className="welcome">
         <p className="muted">✦ {d.profile.branch ? `${d.profile.branch} student` : 'Student'}</p>
         <h1>{d.profile.fullName}</h1>
+        {d.profile.phone && <p className="muted">📞 {d.profile.phone} · {d.profile.email}</p>}
         <p className="muted">Readiness <b>{d.readiness.score}%</b> · <b>{d.readiness.level}</b> · assessment coverage {d.assessmentCoverage}%</p>
       </div>
       <div className="grid3">

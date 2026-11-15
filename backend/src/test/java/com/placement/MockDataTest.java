@@ -19,7 +19,7 @@ class MockDataTest {
     final List<Resource> res = List.of(new Resource(1, "R", "Course", "Java", "1h"));
 
     StudentDashboard student(UUID id, int coding) {
-        return new StudentDashboard(new Profile(id, "S", "s@x.com", "student", "CSE"),
+        return new StudentDashboard(new Profile(id, "S", "s@x.com", "student", "CSE", "+91 9876543210"),
                 new Academics(7.5, 70, coding, 70, List.of("Java")), new Readiness(70, "Ready", List.of(), List.of()));
     }
 
