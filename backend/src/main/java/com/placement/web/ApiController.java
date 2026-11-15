@@ -1,6 +1,7 @@
 package com.placement.web;
 
 import com.placement.model.Dtos.*;
+import com.placement.model.MockData;
 import com.placement.model.Repo;
 import java.util.List;
 import java.util.UUID;
@@ -13,10 +14,45 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    private static final java.util.Set<String> SECTIONS = java.util.Set.of("overview", "profile", "skills", "aptitude",
+            "coding", "readiness", "careers", "skill-gaps", "roadmap", "progress");
     private final Repo repo;
+    private final MockData mock;
 
-    public ApiController(Repo repo) {
+    public ApiController(Repo repo, MockData mock) {
         this.repo = repo;
+        this.mock = mock;
+    }
+
+    private Object section(String name, UUID profileId) {
+        if (!SECTIONS.contains(name)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        var d = repo.dashboard(profileId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return mock.section(name, d, repo.roles(), repo.resources());
+    }
+
+    @GetMapping("/student/{section}")
+    public Object studentSection(@PathVariable String section, Authentication auth) {
+        return section(section, current(auth).id());
+    }
+
+    @GetMapping("/admin/students/{id}/{section}")
+    public Object adminStudentSection(@PathVariable UUID id, @PathVariable String section) {
+        return section(section, id);
+    }
+
+    @GetMapping("/resources")
+    public List<Repo.Resource> resources() {
+        return repo.resources();
+    }
+
+    @GetMapping("/admin/roles")
+    public List<Repo.Role> roles() {
+        return repo.roles();
+    }
+
+    @GetMapping("/admin/overview")
+    public java.util.Map<String, Object> adminOverview() {
+        return repo.adminStats();
     }
 
     private Profile current(Authentication auth) {

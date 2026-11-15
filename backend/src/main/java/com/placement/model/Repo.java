@@ -75,4 +75,51 @@ public class Repo {
                         rs.getObject("last_login_at", OffsetDateTime.class), rs.getInt("logins"),
                         rs.getInt("score"), rs.getString("level")));
     }
+
+    public record Role(String slug, String title, String description, String salary, java.util.Map<String, Integer> required) {}
+    public record Resource(int id, String title, String type, String skill, String duration) {}
+
+    private final com.fasterxml.jackson.databind.ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+
+    public List<Role> roles() {
+        return jdbc.query("select slug, title, description, salary, required::text as required from public.career_roles order by title",
+                (rs, i) -> {
+                    try {
+                        java.util.Map<String, Integer> req = json.readValue(rs.getString("required"),
+                                new com.fasterxml.jackson.core.type.TypeReference<>() {});
+                        return new Role(rs.getString("slug"), rs.getString("title"), rs.getString("description"),
+                                rs.getString("salary"), req);
+                    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                        throw new SQLException(e);
+                    }
+                });
+    }
+
+    public List<Resource> resources() {
+        return jdbc.query("select id, title, type, skill, duration from public.resources order by id",
+                (rs, i) -> new Resource(rs.getInt("id"), rs.getString("title"), rs.getString("type"),
+                        rs.getString("skill"), rs.getString("duration")));
+    }
+
+    public java.util.Map<String, Object> adminStats() {
+        var m = new java.util.LinkedHashMap<String, Object>();
+        m.put("totalStudents", jdbc.queryForObject("select count(*) from public.profiles where role = 'student'", Integer.class));
+        m.put("averageScore", jdbc.queryForObject(
+                "select coalesce(round(avg(r.score)), 0) from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student'", Integer.class));
+        m.put("activeLast7Days", jdbc.queryForObject(
+                "select count(*) from public.profiles where role = 'student' and last_login_at > now() - interval '7 days'", Integer.class));
+        m.put("levels", jdbc.query("select r.level, count(*) c from public.readiness_scores r join public.profiles p on p.id = r.profile_id where p.role = 'student' group by r.level",
+                (rs, i) -> java.util.Map.of("level", rs.getString("level"), "count", rs.getInt("c"))));
+        m.put("branches", jdbc.query("""
+                select coalesce(p.branch, 'Unassigned') b, count(*) c, round(avg(r.score)) a
+                from public.profiles p join public.readiness_scores r on r.profile_id = p.id
+                where p.role = 'student' group by 1 order by 2 desc""",
+                (rs, i) -> java.util.Map.of("branch", rs.getString("b"), "count", rs.getInt("c"), "averageScore", rs.getInt("a"))));
+        m.put("recentLogins", jdbc.query("""
+                select p.id, p.full_name, e.logged_in_at from public.login_events e join public.profiles p on p.id = e.profile_id
+                order by e.logged_in_at desc limit 8""",
+                (rs, i) -> java.util.Map.of("id", rs.getObject("id", UUID.class), "fullName", rs.getString("full_name"),
+                        "at", rs.getObject("logged_in_at", OffsetDateTime.class))));
+        return m;
+    }
 }

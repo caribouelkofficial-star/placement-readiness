@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class ApiSecurityTest {
     @Autowired MockMvc mvc;
     @MockBean Repo repo;
+    @MockBean com.placement.model.MockData mock;
     @MockBean JwtDecoder decoder;
 
     private static SimpleGrantedAuthority role(String r) { return new SimpleGrantedAuthority("ROLE_" + r); }

@@ -20,7 +20,11 @@ async function request(path, options = {}) {
 export const api = {
   recordLogin: () => request('/api/auth/session', { method: 'POST' }),
   me: () => request('/api/me'),
-  studentDashboard: () => request('/api/student/dashboard'),
+  student: (section) => request(`/api/student/${section}`),
+  adminSection: (id, section) => request(`/api/admin/students/${id}/${section}`),
+  resources: () => request('/api/resources'),
+  adminOverview: () => request('/api/admin/overview'),
+  adminRoles: () => request('/api/admin/roles'),
   adminStudents: () => request('/api/admin/students'),
   adminStudent: (id) => request(`/api/admin/students/${id}`),
 }
